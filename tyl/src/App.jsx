@@ -1,0 +1,78 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Sidebar from './components/Sidebar';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import TicketsList from './pages/TicketsList';
+import TicketDetails from './pages/TicketDetails';
+import Analytics from './pages/Analytics';
+
+const AppLayout = ({ children }) => {
+  return (
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Sidebar />
+      <div className="flex-1 overflow-auto">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Dashboard />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tickets"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <TicketsList />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tickets/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <TicketDetails />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AppLayout>
+                    <Analytics />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
+
+export default App;
