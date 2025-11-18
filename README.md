@@ -1,223 +1,67 @@
-# Smart Client Support Management System
+Project: Smart Client Support Management System (MERN)
 
-A complete MERN stack application for managing client support tickets with analytics dashboard.
+Goal:
+Generate a complete MERN repository scaffold + working code for a Support Ticket system with analytics dashboard using the spec below. Do NOT create a Sign Up page — authentication should be seed-only (seeded users) and login only. Use best practices for security and structure.
 
-## Features
+High-level features (must implement):
+- JWT auth using HttpOnly cookies (roles: Admin, Agent, Client). No signup page; use seeded accounts.
+- Ticket management: create/read/update/delete (CR*D; Delete admin-only).
+- Comments on tickets.
+- File uploads (Multer) with 5MB limit.
+- Role-based access control middleware for protected routes.
+- Analytics endpoint for Admin that returns aggregated metrics (tickets by status, tickets per agent, monthly ticket counts).
+- Dark/Light theme toggle persisted in localStorage.
+- Responsive UI, Vite + React 19, Tailwind CSS, React Router, Recharts for graphs, Axios for API calls.
+- Advanced filtering + search on tickets (status, priority, assigned agent, date range, text search).
+- Use bcrypt for password hashing.
+- Seed script to create Admin/Agent/Client default accounts and sample tickets.
 
-- 🔐 JWT Authentication with HttpOnly Cookies (Admin, Agent, Client roles)
-- 🎫 Complete Ticket Management System
-- 📊 Analytics Dashboard (Admin only)
-- 🌙 Dark/Light Theme Toggle
-- 📁 File Upload Support
-- 🔍 Advanced Filtering and Search
-- 📱 Responsive Design
+Backend requirements:
+- Node.js + Express, MongoDB + Mongoose.
+- Folder structure:
+  backend/
+    config/db.js
+    controllers/{authController,ticketController,analyticsController,userController}
+    models/{User,Ticket,Comment}
+    middleware/{auth,upload,roleCheck}
+    routes/{authRoutes,ticketRoutes,analyticsRoutes,userRoutes}
+    uploads/ (for files)
+    server.js
+    package.json
+- Use HttpOnly cookies for JWT (set on login, clear on logout).
+- Validate inputs and return consistent JSON responses with proper status codes.
+- Provide `npm run seed` script to populate DB.
+- Use environment variables (JWT_SECRET, MONGODB_URI, FRONTEND_URL, PORT).
+- Provide CORS allowing FRONTEND_URL and secure cookie options when NODE_ENV=production.
 
-## Tech Stack
+Frontend requirements:
+- Vite + React 19 project in `tyl/`.
+- Context providers for Auth and Theme.
+- Login page only; no sign-up.
+- Pages: Dashboard(Admin-only analytics), TicketsList, TicketDetail, NewTicket (Client only), UsersList(Admin only), Profile.
+- Ticket actions depend on role (assign to agent, change status/priority, add comments, upload attachments).
+- Use Recharts for admin analytics (tickets by status, tickets per agent, monthly trend).
+- Use localStorage for dark mode; persist token via HttpOnly cookies (so frontend uses API to get current user from `/api/auth/me`).
+- Show friendly toasts for success/error.
+- Provide responsive components and examples using Tailwind.
 
-### Backend
-- Node.js + Express
-- MongoDB + Mongoose
-- JWT Authentication
-- Multer for file uploads
-- Bcrypt for password hashing
+Deliverables:
+- Full code for both backend and frontend ready to run locally.
+- `README.md` with setup steps for backend and frontend (include seed step).
+- `.env.example` files for frontend and backend.
+- Seeded default users:
+  - Admin: admin@support.com / admin123
+  - Agent: agent1@support.com / agent123
+  - Client: client1@example.com / client123
 
-### Frontend
-- React 19 + Vite
-- React Router
-- Tailwind CSS
-- Recharts for analytics
-- Axios for API calls
+Additional instructions:
+- Keep code modular; include comments for important parts.
+- Ensure file upload size limited to 5MB and only allow common safe extensions (.png, .jpg, .pdf, .docx).
+- Include tests for critical backend routes (optional but preferred).
+- Include helpful npm scripts:
+  - backend: dev, start, seed
+  - frontend: dev, build, preview
+- When generating code, include small example of how to call the analytics endpoint and sample response.
+- Add `.env.example` contents at top-level of both packages.
 
-## Project Structure
-
-```
-project/
-├── backend/
-│   ├── config/
-│   │   ├── db.js
-│   │   └── seed.js
-│   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── ticketController.js
-│   │   ├── analyticsController.js
-│   │   └── userController.js
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── Ticket.js
-│   │   └── Comment.js
-│   ├── routes/
-│   │   ├── authRoutes.js
-│   │   ├── ticketRoutes.js
-│   │   ├── analyticsRoutes.js
-│   │   └── userRoutes.js
-│   ├── middleware/
-│   │   ├── auth.js
-│   │   └── upload.js
-│   ├── uploads/
-│   ├── server.js
-│   ├── package.json
-│   └── .env.example
-└── tyl/
-    ├── src/
-    │   ├── components/
-    │   ├── pages/
-    │   ├── context/
-    │   ├── utils/
-    │   ├── App.jsx
-    │   ├── main.jsx
-    │   └── index.css
-    ├── package.json
-    └── .env.example
-```
-
-## Setup Instructions
-
-### Prerequisites
-- Node.js (v18 or higher)
-- MongoDB (local or Atlas)
-- npm or yarn
-
-### Backend Setup
-
-1. Navigate to backend directory:
-```bash
-cd backend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create `.env` file from `.env.example`:
-```bash
-cp .env.example .env
-```
-
-4. Update `.env` with your MongoDB connection string:
-```
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/support_system
-JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
-JWT_EXPIRE=7d
-NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
-```
-
-5. Seed the database with initial data:
-```bash
-npm run seed
-```
-
-6. Start the backend server:
-```bash
-npm run dev
-```
-
-The backend will run on `http://localhost:5000`
-
-### Frontend Setup
-
-1. Navigate to frontend directory:
-```bash
-cd tyl
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create `.env` file from `.env.example`:
-```bash
-cp .env.example .env
-```
-
-4. Update `.env` if needed (default should work):
-```
-VITE_API_URL=http://localhost:5000/api
-```
-
-5. Start the development server:
-```bash
-npm run dev
-```
-
-The frontend will run on `http://localhost:5173`
-
-## Default Login Credentials
-
-After running the seed script, you can use these credentials:
-
-- **Admin**: admin@support.com / admin123
-- **Agent**: agent1@support.com / agent123
-- **Client**: client1@example.com / client123
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user
-- `POST /api/auth/logout` - Logout user
-
-### Tickets
-- `GET /api/tickets` - Get all tickets (with filters)
-- `GET /api/tickets/:id` - Get single ticket
-- `POST /api/tickets` - Create ticket (Client only)
-- `PUT /api/tickets/:id` - Update ticket
-- `DELETE /api/tickets/:id` - Delete ticket (Admin only)
-- `POST /api/tickets/:id/comments` - Add comment
-- `POST /api/tickets/:id/upload` - Upload file
-
-### Analytics (Admin only)
-- `GET /api/analytics` - Get analytics data
-
-### Users (Admin only)
-- `GET /api/users` - Get all users
-- `GET /api/users/:id` - Get single user
-
-## Features by Role
-
-### Admin
-- View all tickets
-- Access analytics dashboard
-- Manage users
-- Assign tickets to agents
-- Update any ticket
-
-### Agent
-- View assigned tickets and unassigned tickets
-- Update ticket status and priority
-- Add comments
-- Assign tickets to themselves
-
-### Client
-- Create tickets
-- View own tickets
-- Update own ticket details (title, description, category)
-- Add comments to own tickets
-
-## Development
-
-### Backend
-- Development mode with auto-reload: `npm run dev`
-- Production mode: `npm start`
-- Seed database: `npm run seed`
-
-### Frontend
-- Development server: `npm run dev`
-- Build for production: `npm run build`
-- Preview production build: `npm run preview`
-
-## Notes
-
-- JWT tokens are stored in HttpOnly cookies for security
-- File uploads are limited to 5MB per file
-- All routes are protected except login
-- Role-based access control is enforced on both frontend and backend
-- Dark mode preference is saved in localStorage
-
-## License
-
-MIT
-
+Now scaffold the repository with production-ready code files and the README. Provide the code files as a file tree and include the most important file contents inline (server.js, auth middleware, sample model, React App main files, and analytics charts). Keep the implementation concise but complete enough to run locally with minimal edits.
