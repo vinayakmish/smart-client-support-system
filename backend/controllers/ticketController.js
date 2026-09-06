@@ -170,15 +170,19 @@ export const updateTicket = async (req, res) => {
       ticket.description = description || ticket.description;
       ticket.category = category || ticket.category;
     } else {
-      // Agents and Admins can update everything
+      // Agents and Admins can update status, priority, title, description, category
       const { title, description, status, priority, category, assignedTo } =
         req.body;
-      ticket.title = title || ticket.title;
-      ticket.description = description || ticket.description;
-      ticket.status = status || ticket.status;
-      ticket.priority = priority || ticket.priority;
-      ticket.category = category || ticket.category;
-      ticket.assignedTo = assignedTo || ticket.assignedTo;
+      if (title) ticket.title = title;
+      if (description) ticket.description = description;
+      if (status) ticket.status = status;
+      if (priority) ticket.priority = priority;
+      if (category) ticket.category = category;
+
+      // ONLY Admin can change assignedTo
+      if (req.user.role === 'admin' && assignedTo !== undefined) {
+        ticket.assignedTo = assignedTo ? assignedTo : null;
+      }
     }
 
     await ticket.save();

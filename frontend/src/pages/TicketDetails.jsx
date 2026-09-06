@@ -25,10 +25,10 @@ const TicketDetails = () => {
   }, [id]);
 
   useEffect(() => {
-    if (isAdmin || isAgent) {
+    if (isAdmin) {
       fetchAgents();
     }
-  }, [isAdmin, isAgent]);
+  }, [isAdmin]);
 
   const fetchTicket = async () => {
     try {
@@ -511,12 +511,12 @@ const TicketDetails = () => {
             <label className="block text-zinc-500 dark:text-zinc-400 mb-1 font-medium">
               Assignee
             </label>
-            {(isAdmin || isAgent) ? (
+            {isAdmin ? (
               <select
-                value={editData.assignedTo || ticket.assignedTo?._id || ''}
+                value={editData.assignedTo !== undefined ? editData.assignedTo : (ticket.assignedTo?._id || '')}
                 onChange={(e) => {
                   const newAgentId = e.target.value;
-                  const updated = { ...editData, assignedTo: newAgentId || null };
+                  const updated = { ...editData, assignedTo: newAgentId || '' };
                   setEditData(updated);
                   handleUpdate(updated);
                 }}
