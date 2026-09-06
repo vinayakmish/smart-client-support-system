@@ -243,7 +243,7 @@ export const addComment = async (req, res) => {
       req.files.forEach((file) => {
         attachments.push({
           filename: file.originalname,
-          path: file.path,
+          path: file.filename || file.originalname,
         });
       });
     }
@@ -286,7 +286,7 @@ export const uploadFile = async (req, res) => {
 
     ticket.attachments.push({
       filename: req.file.originalname,
-      path: req.file.path,
+      path: req.file.filename || req.file.originalname,
     });
 
     await ticket.save();

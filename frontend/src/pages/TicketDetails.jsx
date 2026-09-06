@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import { IconArrowLeft, IconEdit, IconTrash, IconClock, IconUser, IconCheck } from '../components/Icons';
+import { IconArrowLeft, IconEdit, IconTrash, IconClock, IconUser, IconCheck, IconPaperclip, IconClose } from '../components/Icons';
 
 const TicketDetails = () => {
   const { id } = useParams();
@@ -12,11 +12,13 @@ const TicketDetails = () => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [agents, setAgents] = useState([]);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchTicket();
@@ -102,14 +104,52 @@ const TicketDetails = () => {
     }
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...Array.from(e.target.files)]);
+    }
+  };
+
+  const handlePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const pastedFiles = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].kind === 'file') {
+        const file = items[i].getAsFile();
+        if (file) {
+          const renamedFile = new File(
+            [file],
+            file.name && file.name !== 'image.png'
+              ? file.name
+              : `pasted-image-${Date.now()}.${file.type.split('/')[1] || 'png'}`,
+            { type: file.type }
+          );
+          pastedFiles.push(renamedFile);
+        }
+      }
+    }
+    if (pastedFiles.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...pastedFiles]);
+    }
+  };
+
+  const removeFile = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleAddComment = async (e) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
+    if (!commentText.trim() && selectedFiles.length === 0) return;
 
     try {
       setSubmittingComment(true);
       const formData = new FormData();
-      formData.append('content', commentText);
+      formData.append('content', commentText.trim() || 'Attached file(s)');
+
+      selectedFiles.forEach((file) => {
+        formData.append('attachments', file);
+      });
 
       const response = await api.post(`/tickets/${id}/comments`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -117,10 +157,12 @@ const TicketDetails = () => {
       if (response.data.success) {
         setComments([response.data.data, ...comments]);
         setCommentText('');
+        setSelectedFiles([]);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }
     } catch (error) {
       console.error('Error adding comment:', error);
-      alert('Failed to add comment');
+      alert(error.response?.data?.message || 'Failed to add comment');
     } finally {
       setSubmittingComment(false);
     }
@@ -275,17 +317,63 @@ const TicketDetails = () => {
 
             {/* Composer */}
             <form onSubmit={handleAddComment} className="space-y-3">
-              <textarea
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                rows={3}
-                placeholder="Leave an update or reply..."
-                className="w-full px-3.5 py-2.5 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-xs outline-none focus:border-zinc-900 dark:focus:border-zinc-100 transition-all placeholder-zinc-400"
-              />
-              <div className="flex justify-end">
+              <div className="relative">
+                <textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onPaste={handlePaste}
+                  rows={3}
+                  placeholder="Leave an update or reply... (Tip: You can paste screenshots directly via Ctrl+V)"
+                  className="w-full px-3.5 py-2.5 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-xs outline-none focus:border-zinc-900 dark:focus:border-zinc-100 transition-all placeholder-zinc-400"
+                />
+              </div>
+
+              {/* Selected Files preview chips */}
+              {selectedFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {selectedFiles.map((file, idx) => (
+                    <div
+                      key={idx}
+                      className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-800 dark:text-zinc-200"
+                    >
+                      <IconPaperclip className="w-3.5 h-3.5 text-zinc-400" />
+                      <span className="truncate max-w-[180px] font-medium">{file.name}</span>
+                      <span className="text-[10px] text-zinc-400">({(file.size / 1024).toFixed(0)}KB)</span>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(idx)}
+                        className="text-zinc-400 hover:text-red-500 transition-colors ml-1 cursor-pointer"
+                      >
+                        <IconClose className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-1">
+                <div>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    multiple
+                    accept="image/*,.pdf,.doc,.docx,.txt"
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-medium transition-colors cursor-pointer"
+                  >
+                    <IconPaperclip className="w-3.5 h-3.5" />
+                    <span>Attach Files</span>
+                  </button>
+                </div>
+
                 <button
                   type="submit"
-                  disabled={submittingComment || !commentText.trim()}
+                  disabled={submittingComment || (!commentText.trim() && selectedFiles.length === 0)}
                   className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 rounded-md text-xs font-medium shadow-sm transition-colors disabled:opacity-40 cursor-pointer"
                 >
                   {submittingComment ? 'Submitting...' : 'Comment'}
@@ -321,6 +409,32 @@ const TicketDetails = () => {
                     <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
                       {comment.content}
                     </p>
+
+                    {/* Attachments rendering */}
+                    {comment.attachments && comment.attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60">
+                        {comment.attachments.map((att, idx) => {
+                          const fileUrl = `http://localhost:5000/uploads/${att.path}`;
+                          const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(att.filename || att.path);
+                          return (
+                            <a
+                              key={idx}
+                              href={fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center space-x-2 px-2.5 py-1.5 rounded-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-800 dark:text-zinc-200 hover:border-zinc-400 transition-colors shadow-xs"
+                            >
+                              {isImg ? (
+                                <img src={fileUrl} alt={att.filename} className="w-6 h-6 object-cover rounded" />
+                              ) : (
+                                <IconPaperclip className="w-4 h-4 text-zinc-400" />
+                              )}
+                              <span className="truncate max-w-[160px] font-medium">{att.filename || att.path}</span>
+                            </a>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 ))
               )}
@@ -397,10 +511,16 @@ const TicketDetails = () => {
             <label className="block text-zinc-500 dark:text-zinc-400 mb-1 font-medium">
               Assignee
             </label>
-            {isAdmin && editing ? (
+            {(isAdmin || isAgent) ? (
               <select
-                value={editData.assignedTo || ''}
-                onChange={(e) => setEditData({ ...editData, assignedTo: e.target.value })}
+                value={editData.assignedTo || ticket.assignedTo?._id || ''}
+                onChange={(e) => {
+                  const newAgentId = e.target.value;
+                  const updated = { ...editData, assignedTo: newAgentId || null };
+                  setEditData(updated);
+                  handleUpdate(updated);
+                }}
+                disabled={updating}
                 className="w-full px-2.5 py-1.5 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 outline-none text-xs"
               >
                 <option value="">Unassigned</option>
