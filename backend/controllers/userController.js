@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import Ticket from '../models/Ticket.js';
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -135,6 +136,9 @@ export const deleteUser = async (req, res) => {
     if (user._id.toString() === req.user._id.toString()) {
       return res.status(400).json({ message: 'You cannot delete your own account' });
     }
+
+    // Unassign any tickets assigned to this user
+    await Ticket.updateMany({ assignedTo: user._id }, { assignedTo: null });
 
     await user.deleteOne();
 

@@ -95,7 +95,7 @@ export const getTicket = async (req, res) => {
     // Check permissions
     if (
       req.user.role === 'client' &&
-      ticket.createdBy._id.toString() !== req.user.id
+      ticket.createdBy?._id?.toString() !== req.user.id
     ) {
       return res.status(403).json({ message: 'Not authorized' });
     }
@@ -236,6 +236,11 @@ export const addComment = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
+    // Check client permission
+    if (req.user.role === 'client' && ticket.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to comment on this ticket' });
+    }
+
     const { content } = req.body;
 
     if (!content) {
@@ -282,6 +287,11 @@ export const uploadFile = async (req, res) => {
 
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    // Check client permission
+    if (req.user.role === 'client' && ticket.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to upload files to this ticket' });
     }
 
     if (!req.file) {

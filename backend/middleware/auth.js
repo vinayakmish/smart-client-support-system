@@ -21,6 +21,9 @@ export const protect = async (req, res, next) => {
         process.env.JWT_SECRET || 'support_system_secret_key_jwt_token_2024'
       );
       req.user = await User.findById(decoded.id).select('-password');
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authorized, user account no longer exists' });
+      }
       next();
     } catch (error) {
       return res.status(401).json({ message: 'Not authorized, token failed' });
