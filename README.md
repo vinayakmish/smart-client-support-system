@@ -5,6 +5,7 @@ A full-stack customer support ticket management system built with the MERN stack
 ## Features
 
 - **Role-Based Access Control** — Three distinct roles (Admin, Agent, Client) with granular permissions enforced on both frontend and backend
+- **User Management** — Admin can create, edit, and delete user accounts, assign roles (admin, agent, client), and reset passwords directly from the UI
 - **Ticket Management** — Create, view, update, and delete support tickets with priority levels, categories, status tracking, and agent assignment
 - **Comments & Collaboration** — Threaded comments on tickets for agent-client communication
 - **File Uploads** — Attach files to tickets (up to 5 MB; supports PNG, JPG, PDF, DOCX)
@@ -56,7 +57,7 @@ smart-client-support-system/
 │   ├── src/
 │   │   ├── components/        # Sidebar, TicketCard, FiltersPanel, Icons, etc.
 │   │   ├── context/           # AuthContext, ThemeContext
-│   │   ├── pages/             # Login, Dashboard, TicketsList, TicketDetails, Analytics
+│   │   ├── pages/             # Login, Dashboard, TicketsList, TicketDetails, Analytics, UserManagement
 │   │   ├── utils/             # Axios instance with interceptors
 │   │   ├── App.jsx
 │   │   └── main.jsx
@@ -159,7 +160,7 @@ npm run seed
 | Delete tickets | Yes | No | No |
 | Add comments | Yes | Yes | Own tickets |
 | View analytics dashboard | Yes | No | No |
-| Manage users | Yes | No | No |
+| Create / edit / delete users | Yes | No | No |
 | Upload attachments | Yes | Yes | Yes |
 
 ## API Endpoints
@@ -205,7 +206,9 @@ npm run seed
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/users` | List users (Admin and Agent) |
-| PUT | `/api/users/:id` | Update user profile |
+| POST | `/api/users` | Create a new user (Admin only) |
+| PUT | `/api/users/:id` | Update user name, email, role, or password (Admin only) |
+| DELETE | `/api/users/:id` | Delete a user (Admin only) |
 
 ## Environment Variables
 

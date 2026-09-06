@@ -5,6 +5,7 @@ import {
   IconDashboard,
   IconTicket,
   IconAnalytics,
+  IconUsers,
   IconSun,
   IconMoon,
   IconLogout,
@@ -19,7 +20,10 @@ const Sidebar = () => {
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: IconDashboard },
     { path: '/tickets', label: 'Tickets', icon: IconTicket },
-    ...(isAdmin ? [{ path: '/analytics', label: 'Analytics', icon: IconAnalytics }] : []),
+    ...(isAdmin ? [
+      { path: '/users', label: 'Users', icon: IconUsers },
+      { path: '/analytics', label: 'Analytics', icon: IconAnalytics },
+    ] : []),
   ];
 
   const isActive = (path) => location.pathname === path;

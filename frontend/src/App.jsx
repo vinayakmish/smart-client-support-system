@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import TicketsList from './pages/TicketsList';
 import TicketDetails from './pages/TicketDetails';
 import Analytics from './pages/Analytics';
+import UserManagement from './pages/UserManagement';
 
 const AppLayout = ({ children }) => {
   return (
@@ -53,6 +54,16 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <TicketDetails />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AppLayout>
+                    <UserManagement />
                   </AppLayout>
                 </ProtectedRoute>
               }
