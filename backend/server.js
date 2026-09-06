@@ -91,7 +91,14 @@ app.use((req, res) => {
   });
 });
 
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+const PORT = process.env.PORT || 5000;
+
+const isDirectRun = process.argv[1] && (
+  process.argv[1].endsWith('server.js') || 
+  process.argv[1].endsWith('server')
+);
+
+if (isDirectRun) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
