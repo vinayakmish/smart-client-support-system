@@ -59,11 +59,15 @@ app.use(
   }),
 );
 
-// Create uploads directory if it doesn't exist
+// Create uploads directory if it doesn't exist (safe for serverless)
 import fs from "fs";
-const uploadsDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+try {
+  const uploadsDir = path.join(__dirname, "uploads");
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (fsErr) {
+  // Ignored in read-only serverless environment
 }
 
 // Serve uploaded files
