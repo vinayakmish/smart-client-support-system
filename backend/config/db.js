@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
-import { autoSeedIfEmpty } from "./seed.js";
 
 let mongodInstance = null;
 
@@ -18,18 +16,19 @@ const connectDB = async () => {
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     return true;
   } catch (error) {
-    console.warn(`Local/Configured MongoDB connection failed (${error.message}).`);
+    console.warn(`MongoDB connection failed (${error.message}).`);
 
-    // In-memory fallback for local development only (not Vercel serverless)
+    // In-memory fallback for local development only (dynamic import so Vercel doesn't crash)
     if (!process.env.VERCEL) {
-      console.log("Starting embedded In-Memory MongoDB server for instant setup...");
       try {
+        const { MongoMemoryServer } = await import("mongodb-memory-server");
         if (!mongodInstance) {
           mongodInstance = await MongoMemoryServer.create();
         }
         const inMemoryUri = mongodInstance.getUri();
         const conn = await mongoose.connect(inMemoryUri);
         console.log(`Embedded In-Memory MongoDB Connected at ${inMemoryUri}`);
+        const { autoSeedIfEmpty } = await import("./seed.js");
         await autoSeedIfEmpty();
         return true;
       } catch (memError) {
