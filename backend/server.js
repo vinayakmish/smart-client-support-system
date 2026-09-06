@@ -23,6 +23,20 @@ connectDB().catch((err) => {
 });
 
 const app = express();
+import mongoose from "mongoose";
+
+// Ensure DB connected on serverless requests
+app.use(async (req, res, next) => {
+  try {
+    if (mongoose.connection.readyState === 0) {
+      await connectDB();
+    }
+    next();
+  } catch (err) {
+    console.error('DB middleware error:', err);
+    next();
+  }
+});
 
 // Middleware
 app.use(express.json());
