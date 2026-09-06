@@ -16,7 +16,10 @@ export const protect = async (req, res, next) => {
 
     try {
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'support_system_secret_key_jwt_token_2024'
+      );
       req.user = await User.findById(decoded.id).select('-password');
       next();
     } catch (error) {

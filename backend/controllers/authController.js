@@ -3,9 +3,13 @@ import jwt from 'jsonwebtoken';
 
 // Generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '7d',
-  });
+  return jwt.sign(
+    { id },
+    process.env.JWT_SECRET || 'support_system_secret_key_jwt_token_2024',
+    {
+      expiresIn: process.env.JWT_EXPIRE || '7d',
+    }
+  );
 };
 
 // @desc    Login user
