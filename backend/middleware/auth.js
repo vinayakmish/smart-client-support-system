@@ -5,8 +5,10 @@ export const protect = async (req, res, next) => {
   try {
     let token;
 
-    // Get token from HttpOnly cookie or headers
-    if (req.cookies && req.cookies.token) {
+    // Get token from Bearer header, HttpOnly cookie, or raw cookie headers
+    if (req.headers && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies && req.cookies.token) {
       token = req.cookies.token;
     } else if (req.headers && req.headers.cookie) {
       const parsedCookies = req.headers.cookie.split(';').reduce((acc, cookie) => {
